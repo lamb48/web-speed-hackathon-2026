@@ -1,4 +1,6 @@
-export async function loadFFmpeg(): Promise<InstanceType<(typeof import("@ffmpeg/ffmpeg"))["FFmpeg"]>> {
+export async function loadFFmpeg(): Promise<
+  InstanceType<(typeof import("@ffmpeg/ffmpeg"))["FFmpeg"]>
+> {
   const { FFmpeg } = await import("@ffmpeg/ffmpeg");
   const ffmpeg = new FFmpeg();
 
