@@ -71,6 +71,15 @@ export const AppContainer = () => {
     window.scrollTo(0, 0);
   }, [pathname]);
 
+  // PostContainer チャンクをアイドル時に先読みし、遷移時のタイムアウトを防ぐ
+  useEffect(() => {
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(() => {
+        import("@web-speed-hackathon-2026/client/src/containers/PostContainer");
+      });
+    }
+  }, []);
+
   const [activeUser, setActiveUser] = useState<Models.User | null>(null);
   const [isLoadingActiveUser, setIsLoadingActiveUser] = useState(true);
   useEffect(() => {
