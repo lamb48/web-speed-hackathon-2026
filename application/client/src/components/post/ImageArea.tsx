@@ -28,7 +28,7 @@ export const ImageArea = ({ fetchPriority, images, loading }: Props) => {
             >
               <CoveredImage
                 alt={image.alt}
-                fetchPriority={fetchPriority}
+                fetchPriority={idx === 0 ? fetchPriority : undefined}
                 loading={loading}
                 src={getImagePath(image.id)}
               />

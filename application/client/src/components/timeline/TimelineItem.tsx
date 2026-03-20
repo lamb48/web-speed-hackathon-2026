@@ -57,7 +57,10 @@ export const TimelineItem = ({ lazy, post }: Props) => {
           >
             <img
               alt={post.user.profileImage.alt}
+              className="h-full w-full object-cover"
+              height={64}
               src={getProfileImagePath(post.user.profileImage.id)}
+              width={64}
             />
           </Link>
         </div>
@@ -87,7 +90,11 @@ export const TimelineItem = ({ lazy, post }: Props) => {
           </div>
           {post.images?.length > 0 ? (
             <div className="relative mt-2 w-full">
-              <ImageArea images={post.images} loading={lazy ? "lazy" : undefined} />
+              <ImageArea
+                fetchPriority={lazy ? undefined : "high"}
+                images={post.images}
+                loading={lazy ? "lazy" : undefined}
+              />
             </div>
           ) : null}
           {post.movie ? (

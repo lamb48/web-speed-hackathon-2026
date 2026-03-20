@@ -38,6 +38,27 @@ try {
       preloadLinkValues.push(`<${src}>; rel=preload; as=script`);
     }
   }
+  // フォント preload を Link ヘッダーに追加（HTML パース前にフォント発見 → テキスト LCP 高速化）
+  for (const m of indexHtml.matchAll(/<link\b[^>]*>/gi)) {
+    const tag = m[0];
+    if (!/rel\s*=\s*["']preload["']/i.test(tag)) continue;
+    if (!/as\s*=\s*["']font["']/i.test(tag)) continue;
+    const hrefMatch = tag.match(/href\s*=\s*["']([^"']+)["']/i);
+    const href = hrefMatch?.[1];
+    if (href && !seen.has(href)) {
+      seen.add(href);
+      const typeMatch = tag.match(/type\s*=\s*["']([^"']+)["']/i);
+      const hasCrossorigin = /crossorigin/i.test(tag);
+      let value = `<${href}>; rel=preload; as=font`;
+      if (typeMatch?.[1]) {
+        value += `; type=${typeMatch[1]}`;
+      }
+      if (hasCrossorigin) {
+        value += "; crossorigin";
+      }
+      preloadLinkValues.push(value);
+    }
+  }
 } catch {
   // index.html が存在しない場合（開発時等）はスキップ
 }
@@ -49,7 +70,7 @@ staticRouter.use(history());
 
 // history() による URL 書き換え後に判定し、HTML レスポンス時のみ Link ヘッダーを付与
 staticRouter.use((req, res, next) => {
-  if (preloadLinkValues.length > 0 && req.method === "GET" && req.url.endsWith(".html")) {
+  if (req.method === "GET" && req.url.endsWith(".html")) {
     for (const value of preloadLinkValues) {
       res.append("Link", value);
     }

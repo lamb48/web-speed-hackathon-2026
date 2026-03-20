@@ -27,8 +27,10 @@ export const CoveredImage = ({ alt, fetchPriority, loading, src }: Props) => {
         className="absolute inset-0 h-full w-full object-cover"
         decoding="async"
         fetchPriority={fetchPriority}
+        height={675}
         loading={loading}
         src={src}
+        width={1200}
       />
 
       <button
