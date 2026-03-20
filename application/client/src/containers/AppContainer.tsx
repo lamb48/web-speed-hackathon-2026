@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useId, useState } from "react";
+import { Component, lazy, ReactNode, Suspense, useCallback, useEffect, useId, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet";
 import { Route, Routes, useLocation, useNavigate } from "react-router";
 
@@ -7,6 +7,19 @@ import { AuthModalContainer } from "@web-speed-hackathon-2026/client/src/contain
 import { NewPostModalContainer } from "@web-speed-hackathon-2026/client/src/containers/NewPostModalContainer";
 import { TimelineContainer } from "@web-speed-hackathon-2026/client/src/containers/TimelineContainer";
 import { fetchJSON, sendJSON } from "@web-speed-hackathon-2026/client/src/utils/fetchers";
+
+class LazyErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  override state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  override render() {
+    if (this.state.hasError) {
+      return null;
+    }
+    return this.props.children;
+  }
+}
 
 const CrokContainer = lazy(() =>
   import("@web-speed-hackathon-2026/client/src/containers/CrokContainer").then((m) => ({
@@ -96,8 +109,9 @@ export const AppContainer = () => {
         newPostModalId={newPostModalId}
         onLogout={handleLogout}
       >
-        <Suspense fallback={null}>
-          <Routes>
+        <LazyErrorBoundary>
+          <Suspense fallback={<div />}>
+            <Routes>
             <Route element={<TimelineContainer />} path="/" />
             <Route
               element={
@@ -118,8 +132,9 @@ export const AppContainer = () => {
               path="/crok"
             />
             <Route element={<NotFoundContainer />} path="*" />
-          </Routes>
-        </Suspense>
+            </Routes>
+          </Suspense>
+        </LazyErrorBoundary>
       </AppPage>
 
       <AuthModalContainer id={authModalId} onUpdateActiveUser={setActiveUser} />
