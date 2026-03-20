@@ -14,7 +14,6 @@ import { Route, Routes, useLocation, useNavigate } from "react-router";
 import { AppPage } from "@web-speed-hackathon-2026/client/src/components/application/AppPage";
 import { AuthModalContainer } from "@web-speed-hackathon-2026/client/src/containers/AuthModalContainer";
 import { NewPostModalContainer } from "@web-speed-hackathon-2026/client/src/containers/NewPostModalContainer";
-import { SearchContainer } from "@web-speed-hackathon-2026/client/src/containers/SearchContainer";
 import { TimelineContainer } from "@web-speed-hackathon-2026/client/src/containers/TimelineContainer";
 import { fetchJSON, sendJSON } from "@web-speed-hackathon-2026/client/src/utils/fetchers";
 
@@ -47,6 +46,11 @@ const DirectMessageListContainer = lazy(() =>
       default: m.DirectMessageListContainer,
     }),
   ),
+);
+const SearchContainer = lazy(() =>
+  import("@web-speed-hackathon-2026/client/src/containers/SearchContainer").then((m) => ({
+    default: m.SearchContainer,
+  })),
 );
 const UserProfileContainer = lazy(() =>
   import("@web-speed-hackathon-2026/client/src/containers/UserProfileContainer").then((m) => ({
