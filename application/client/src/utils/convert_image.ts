@@ -4,7 +4,12 @@ interface Options {
   extension: keyof typeof MagickFormat;
 }
 
-export async function convertImage(file: File, options: Options): Promise<Blob> {
+export interface ConvertImageResult {
+  blob: Blob;
+  alt: string | null;
+}
+
+export async function convertImage(file: File, options: Options): Promise<ConvertImageResult> {
   const [
     { initializeImageMagick, ImageMagick, MagickFormat },
     magickWasmBuffer,
@@ -30,9 +35,9 @@ export async function convertImage(file: File, options: Options): Promise<Blob> 
       const comment = img.comment;
 
       img.write((output) => {
-        // piexifjs の EXIF 挿入は JPEG のみ対応。WebP 等はそのまま返す
+        // piexifjs の EXIF 挿入は JPEG のみ対応。WebP 等はコメントだけ返す
         if (comment == null || format !== MagickFormat.Jpg) {
-          resolve(new Blob([output as Uint8Array<ArrayBuffer>]));
+          resolve({ blob: new Blob([output as Uint8Array<ArrayBuffer>]), alt: comment || null });
           return;
         }
 
@@ -48,7 +53,7 @@ export async function convertImage(file: File, options: Options): Promise<Blob> 
         const exifStr = dump({ "0th": { [ImageIFD.ImageDescription]: descriptionBinary } });
         const outputWithExif = insert(exifStr, binary);
         const bytes = Uint8Array.from(outputWithExif.split("").map((c) => c.charCodeAt(0)));
-        resolve(new Blob([bytes]));
+        resolve({ blob: new Blob([bytes]), alt: comment });
       });
     });
   });

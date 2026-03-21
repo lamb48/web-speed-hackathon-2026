@@ -28,7 +28,11 @@ imageRouter.post("/images", async (req, res) => {
   }
 
   const imageId = uuidv4();
-  const alt = await extractAltFromImage(req.body);
+  let alt = await extractAltFromImage(req.body);
+  // WebP等でEXIFが消失した場合、クライアントから渡されたaltをフォールバックとして使用
+  if (!alt && typeof req.headers["x-image-alt"] === "string") {
+    alt = req.headers["x-image-alt"].slice(0, 255);
+  }
 
   const filePath = path.resolve(UPLOAD_PATH, `./images/${imageId}.${EXTENSION}`);
   await fs.mkdir(path.resolve(UPLOAD_PATH, "images"), { recursive: true });

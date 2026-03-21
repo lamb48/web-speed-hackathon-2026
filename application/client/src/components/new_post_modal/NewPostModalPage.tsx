@@ -10,8 +10,13 @@ import { convertSound } from "@web-speed-hackathon-2026/client/src/utils/convert
 
 const MAX_UPLOAD_BYTES_LIMIT = 10 * 1024 * 1024;
 
-interface SubmitParams {
-  images: File[];
+export interface ImageWithAlt {
+  file: File;
+  alt: string | null;
+}
+
+export interface SubmitParams {
+  images: ImageWithAlt[];
   movie: File | undefined;
   sound: File | undefined;
   text: string;
@@ -54,9 +59,10 @@ export const NewPostModalPage = ({ id, hasError, isLoading, onResetError, onSubm
 
       Promise.all(
         files.map((file) =>
-          convertImage(file, { extension: "WebP" }).then(
-            (blob) => new File([blob], "converted.webp", { type: "image/webp" }),
-          ),
+          convertImage(file, { extension: "WebP" }).then((result) => ({
+            file: new File([result.blob], "converted.webp", { type: "image/webp" }),
+            alt: result.alt,
+          })),
         ),
       )
         .then((convertedFiles) => {

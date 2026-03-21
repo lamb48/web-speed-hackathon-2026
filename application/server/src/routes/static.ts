@@ -12,6 +12,7 @@ import {
   UPLOAD_PATH,
 } from "@web-speed-hackathon-2026/server/src/paths";
 import { renderHomeTimeline } from "@web-speed-hackathon-2026/server/src/ssr/render-home";
+import { renderSearchPage } from "@web-speed-hackathon-2026/server/src/ssr/render-search";
 import { renderTermsPage } from "@web-speed-hackathon-2026/server/src/ssr/render-terms";
 
 // サーバー起動時に dist/index.html をキャッシュ
@@ -52,6 +53,23 @@ staticRouter.use(async (req, res, next) => {
 
   const originalUrl = req.originalUrl?.split("?")[0] || "/";
 
+  // 検索ページ SSR: 検索フォームをプリレンダリング
+  if (originalUrl === "/search" && indexHtmlTemplate) {
+    try {
+      const ssrHtml = renderSearchPage();
+      const html = indexHtmlTemplate
+        .replace("<title>CaX</title>", "<title>検索 - CaX</title>")
+        .replace('<div id="app"></div>', `<div id="app">${ssrHtml}</div>`);
+
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Cache-Control", "no-cache");
+      return res.send(html);
+    } catch (e) {
+      console.error("[SSR] search page render failed:", e);
+      // フォールバック: CSR
+    }
+  }
+
   // Terms ページ SSR: 静的コンテンツをサーバーサイドレンダリング
   if (originalUrl === "/terms" && indexHtmlTemplate) {
     try {
@@ -70,7 +88,7 @@ staticRouter.use(async (req, res, next) => {
 
   if ((originalUrl === "/" || originalUrl === "/index.html") && indexHtmlTemplate) {
     try {
-      const posts = await Post.findAll({ limit: 10, offset: 0 });
+      const posts = await Post.findAll({ limit: 5, offset: 0 });
       const postsJson = JSON.stringify(posts)
         .replace(/</g, "\\u003c")
         .replace(/\u2028/g, "\\u2028")
