@@ -43,6 +43,11 @@ staticRouter.use((req, res, next) => {
     for (const value of preloadLinkValues) {
       res.append("Link", value);
     }
+    // ホームページの API データをプリロード（JS パース中にフェッチ開始）
+    const originalUrl = req.originalUrl?.split("?")[0] || "/";
+    if (originalUrl === "/" || originalUrl === "/index.html") {
+      res.append("Link", "</api/v1/posts?limit=30&offset=0>; rel=preload; as=fetch");
+    }
   }
   next();
 });

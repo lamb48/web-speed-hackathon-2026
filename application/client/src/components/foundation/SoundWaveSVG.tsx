@@ -36,19 +36,59 @@ interface Props {
 
 export const SoundWaveSVG = ({ soundData }: Props) => {
   const uniqueIdRef = useRef(Math.random().toString(16));
+  const containerRef = useRef<SVGSVGElement>(null);
   const [{ max, peaks }, setPeaks] = useState<ParsedData>({
     max: 0,
     peaks: [],
   });
 
   useEffect(() => {
-    calculate(soundData).then(({ max, peaks }) => {
-      setPeaks({ max, peaks });
-    });
+    let cancelled = false;
+    let idleHandle: number | undefined;
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    const svg = containerRef.current;
+    if (!svg) return;
+
+    // IntersectionObserver で可視領域に入るまで計算開始しない
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          observer.disconnect();
+          // requestIdleCallback でメインスレッドがアイドルのときに計算
+          const run = () => {
+            if (cancelled) return;
+            calculate(soundData).then((result) => {
+              if (!cancelled) {
+                setPeaks(result);
+              }
+            });
+          };
+          if ("requestIdleCallback" in window) {
+            idleHandle = requestIdleCallback(run, { timeout: 5000 });
+          } else {
+            timeoutHandle = setTimeout(run, 100);
+          }
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(svg);
+
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+      if (idleHandle !== undefined) cancelIdleCallback(idleHandle);
+      if (timeoutHandle !== undefined) clearTimeout(timeoutHandle);
+    };
   }, [soundData]);
 
   return (
-    <svg className="h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 1">
+    <svg
+      ref={containerRef}
+      className="h-full w-full"
+      preserveAspectRatio="none"
+      viewBox="0 0 100 1"
+    >
       {peaks.map((peak, idx) => {
         const ratio = peak / max;
         return (
