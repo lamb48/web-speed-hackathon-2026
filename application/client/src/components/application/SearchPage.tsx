@@ -36,20 +36,32 @@ export const SearchPage = ({ query, results }: Props) => {
     }
 
     let isMounted = true;
-    analyzeSentiment(parsed.keywords)
-      .then((result) => {
-        if (isMounted) {
-          setIsNegative(result.label === "negative");
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setIsNegative(false);
-        }
-      });
+
+    const schedule =
+      typeof requestIdleCallback === "function"
+        ? requestIdleCallback
+        : (cb: () => void, _opts?: { timeout?: number }) => window.setTimeout(cb, 0);
+    const cancel =
+      typeof cancelIdleCallback === "function"
+        ? cancelIdleCallback
+        : (id: number) => clearTimeout(id);
+
+    const id = schedule(
+      () => {
+        analyzeSentiment(parsed.keywords)
+          .then((result) => {
+            if (isMounted) setIsNegative(result.label === "negative");
+          })
+          .catch(() => {
+            if (isMounted) setIsNegative(false);
+          });
+      },
+      { timeout: 5000 },
+    );
 
     return () => {
       isMounted = false;
+      cancel(id);
     };
   }, [parsed.keywords]);
 
@@ -65,7 +77,7 @@ export const SearchPage = ({ query, results }: Props) => {
       parts.push(`${parsed.untilDate} 以前`);
     }
     return parts.join(" ");
-  }, [parsed]);
+  }, [parsed.keywords, parsed.sinceDate, parsed.untilDate]);
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
