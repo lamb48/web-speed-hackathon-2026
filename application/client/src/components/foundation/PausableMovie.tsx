@@ -6,9 +6,10 @@ import { FontAwesomeIcon } from "@web-speed-hackathon-2026/client/src/components
 
 interface Props {
   src: string;
+  poster?: string;
 }
 
-export const PausableMovie = ({ src }: Props) => {
+export const PausableMovie = ({ src, poster }: Props) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -67,6 +68,7 @@ export const PausableMovie = ({ src }: Props) => {
             preload="none"
             className="h-full w-full object-cover"
             src={src}
+            poster={poster}
           />
           <div
             className={classNames(
