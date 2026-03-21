@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const LIMIT = 30;
+const LIMIT = 10;
 
 interface ReturnValues<T> {
   data: Array<T>;
@@ -13,14 +13,21 @@ interface ReturnValues<T> {
 export function useInfiniteFetch<T>(
   apiPath: string,
   fetcher: (apiPath: string) => Promise<T[]>,
+  initialData?: T[],
 ): ReturnValues<T> {
-  const internalRef = useRef({ isLoading: false, offset: 0, hasMore: true, requestId: 0 });
+  const hasInitialData = initialData != null && initialData.length > 0;
+  const internalRef = useRef({
+    isLoading: false,
+    offset: hasInitialData ? initialData.length : 0,
+    hasMore: hasInitialData ? initialData.length >= LIMIT : true,
+    requestId: 0,
+  });
 
   const [result, setResult] = useState<Omit<ReturnValues<T>, "fetchMore">>({
-    data: [],
+    data: hasInitialData ? initialData : [],
     error: null,
-    hasMore: true,
-    isLoading: true,
+    hasMore: hasInitialData ? initialData.length >= LIMIT : true,
+    isLoading: !hasInitialData,
   });
 
   const fetchMore = useCallback(() => {
@@ -82,7 +89,14 @@ export function useInfiniteFetch<T>(
     );
   }, [apiPath, fetcher]);
 
+  const initialSkipRef = useRef(hasInitialData);
+
   useEffect(() => {
+    if (initialSkipRef.current) {
+      initialSkipRef.current = false;
+      return;
+    }
+
     internalRef.current = {
       isLoading: false,
       offset: 0,

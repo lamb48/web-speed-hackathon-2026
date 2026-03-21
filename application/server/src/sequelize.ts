@@ -27,6 +27,13 @@ export async function initializeSequelize() {
   });
   initModels(_sequelize);
 
+  // SQLite PRAGMA optimizations
+  await _sequelize.query("PRAGMA journal_mode = WAL");
+  await _sequelize.query("PRAGMA synchronous = NORMAL");
+  await _sequelize.query("PRAGMA cache_size = -32768");
+  await _sequelize.query("PRAGMA mmap_size = 268435456");
+  await _sequelize.query("PRAGMA temp_store = MEMORY");
+
   await _sequelize.query("CREATE INDEX IF NOT EXISTS idx_posts_created ON Posts(createdAt)");
   await _sequelize.query("CREATE INDEX IF NOT EXISTS idx_posts_user ON Posts(userId)");
   await _sequelize.query(

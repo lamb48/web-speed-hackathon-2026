@@ -10,7 +10,7 @@ import { UPLOAD_PATH } from "@web-speed-hackathon-2026/server/src/paths";
 import { extractAltFromImage } from "@web-speed-hackathon-2026/server/src/utils/extract_alt_from_image";
 
 // 変換した画像の拡張子
-const EXTENSION = "jpg";
+const EXTENSION = "webp";
 
 export const imageRouter = Router();
 
@@ -28,7 +28,7 @@ imageRouter.post("/images", async (req, res) => {
   }
 
   const imageId = uuidv4();
-  const alt = extractAltFromImage(req.body);
+  const alt = await extractAltFromImage(req.body);
 
   const filePath = path.resolve(UPLOAD_PATH, `./images/${imageId}.${EXTENSION}`);
   await fs.mkdir(path.resolve(UPLOAD_PATH, "images"), { recursive: true });

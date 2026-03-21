@@ -158,7 +158,14 @@ directMessageRouter.get("/dm/:conversationId", async (req, res) => {
     throw new httpErrors.NotFound();
   }
 
-  return res.status(200).type("application/json").send(conversation);
+  // defaultScope は DESC+limit50 で最新50件を取得するため、クライアント向けにASCに戻す
+  const json = conversation.toJSON() as Record<string, unknown>;
+  const messages = json["messages"] as Array<unknown> | undefined;
+  if (messages) {
+    messages.reverse();
+  }
+
+  return res.status(200).type("application/json").send(json);
 });
 
 directMessageRouter.ws("/dm/:conversationId", async (req, _res) => {
